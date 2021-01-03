@@ -791,25 +791,17 @@ Für mehr Details vgl. [Configuring Secrets](/docs/concepts/configuration/secret
 
 Ein `storageos` Volume erlaubt es ein existierendes [StorageOS](https://www.storageos.com) Volume in einen Pod zu mounten.
 
-StorageOS läuft als Container in deinem Kubernetes Environment und macht lokales oder eingehängtes Storage von jedem Node im Kubernetes Cluster aus zugänglich.
+StorageOS läuft als Container in deinem Kubernetes Environment und macht lokales oder eingehängtes Storage von jedem Node im Kubernetes Cluster aus zugänglich. Als Schutz gegen Node-Ausfälle k¨ønnen Daten repliziert werden. Thin provisioning und Kompression können die Kapazität verbessern und die Kosten reduzieren.
 
+Im Grunde stellt StorageOS Containern Block Storage über ein Dateisystem zur Verfügung.
 
-Data can be replicated to protect against node failure. Thin provisioning and
-compression can improve utilization and reduce cost.
-
-At its core, StorageOS provides block storage to containers, accessible from a file system.
-
-The StorageOS Container requires 64-bit Linux and has no additional dependencies.
-A free developer license is available.
+Der StorageOS Container verlangt 64-bit Linux und hat sonst keine Abhängigkeiten. Eine freie Entwicklerlizenz ist verfügbar.
 
 {{< caution >}}
-You must run the StorageOS container on each node that wants to
-access StorageOS volumes or that will contribute storage capacity to the pool.
-For installation instructions, consult the
-[StorageOS documentation](https://docs.storageos.com).
+Du musst den StorageOS Container auf jedem Node, der auf StorageOS Volume zugreifen oder Storage zum Pool beetragen will. Für die Installationsanleitung vgl. [StorageOS documentation](https://docs.storageos.com).
 {{< /caution >}}
 
-The following example is a Pod configuration with StorageOS:
+Das folgende Beispiel ist eine Pod Konfiguration mit StorageOS:
 
 ```yaml
 apiVersion: v1
@@ -839,30 +831,27 @@ spec:
         fsType: ext4
 ```
 
-For more information about StorageOS, dynamic provisioning, and PersistentVolumeClaims, see the
-[StorageOS examples](https://github.com/kubernetes/examples/blob/master/volumes/storageos).
+Für mehr Information über StorageOS, dynamisches Provisionieren und PersistentVolumeClaims, vgl. die [StorageOS examples](https://github.com/kubernetes/examples/blob/master/volumes/storageos).
 
 ### vsphereVolume {#vspherevolume}
 
 {{< note >}}
-You must configure the Kubernetes vSphere Cloud Provider. For cloudprovider
-configuration, refer to the [vSphere Getting Started guide](https://vmware.github.io/vsphere-storage-for-kubernetes/documentation/).
+Du musst den Kubernetes vSphere Cloud Provider konfigurieren. Zur Cloud Provider Konfiguration vgl. den [vSphere Getting Started guide](https://vmware.github.io/vsphere-storage-for-kubernetes/documentation/).
 {{< /note >}}
 
-A `vsphereVolume` is used to mount a vSphere VMDK volume into your Pod.  The contents
-of a volume are preserved when it is unmounted. It supports both VMFS and VSAN datastore.
+Ein `vsphereVolume` wird verwendet um ein vSphere VMDK Volume in einen Pod zu mounten. Der Inhalt des Volumes bleibt erhalten, wenn es unmounted wird. Es unterstützt sowohl VMFS als auch VSAN Datastores.
 
 {{< note >}}
-You must create vSphere VMDK volume using one of the following methods before using with a Pod.
+Du musst ein vSphere VMDK Volume mit einer der folgenden Methoden erstellen bevor du es in einem Pod nutzen kannst.
 {{< /note >}}
 
 #### Creating a VMDK volume {#creating-vmdk-volume}
 
-Choose one of the following methods to create a VMDK.
+Wähle eine der folgenden Methoden um ein VMDK zu erstellen.
 
 {{< tabs name="tabs_volumes" >}}
 {{% tab name="Create using vmkfstools" %}}
-First ssh into ESX, then use the following command to create a VMDK:
+Logge dich zuerst per SSH auf dem ESX Host ein und verwende dann das folgende Kommando um ein VMDK zu erstellen:
 
 ```shell
 vmkfstools -c 2G /vmfs/volumes/DatastoreName/volumes/myDisk.vmdk
@@ -870,7 +859,7 @@ vmkfstools -c 2G /vmfs/volumes/DatastoreName/volumes/myDisk.vmdk
 
 {{% /tab %}}
 {{% tab name="Create using vmware-vdiskmanager" %}}
-Use the following command to create a VMDK:
+Verwende das folgende Kommando um ein VMDK zu erstellen:
 
 ```shell
 vmware-vdiskmanager -c -t 0 -s 40GB -a lsilogic myDisk.vmdk
@@ -880,7 +869,7 @@ vmware-vdiskmanager -c -t 0 -s 40GB -a lsilogic myDisk.vmdk
 
 {{< /tabs >}}
 
-#### vSphere VMDK configuration example {#vsphere-vmdk-configuration}
+#### vSphere VMDK Beispielskonfiguration {#vsphere-vmdk-configuration}
 
 ```yaml
 apiVersion: v1
@@ -902,7 +891,7 @@ spec:
       fsType: ext4
 ```
 
-For more information, see the [vSphere volume](https://github.com/kubernetes/examples/tree/master/staging/volumes/vsphere) examples.
+Für mehr Information vgl die [vSphere volume](https://github.com/kubernetes/examples/tree/master/staging/volumes/vsphere) Beispiele.
 
 #### vSphere CSI migration {#vsphere-csi-migration}
 
@@ -911,10 +900,10 @@ For more information, see the [vSphere volume](https://github.com/kubernetes/exa
 Das `CSIMigration` Feature von `vsphereVolume`, leitet, wenn es eingeschaltet ist, alle Plugin-Operationen vom existierenden in-tree Plugin zum `csi.vsphere.vmware.com` Container Storage Interface (CSI) Driver weiter. Um dieses Feature nutzen zu können, muss der [vSphere CSI driver](https://github.com/kubernetes-sigs/vsphere-csi-driver) installiert sein und die `CSIMigration` and `CSIMigrationvSphere`
 [feature gates](/docs/reference/command-line-tools-reference/feature-gates/) müssen eingeschaltet sein.
 
-This also requires minimum vSphere vCenter/ESXi Version to be 7.0u1 and minimum HW Version to be VM version 15.
+Es verlangt auch, dass die Mindestversion von vSphere vCenter/ESXi 7.0u1 und die HW-Version mindestens 15 ist.
 
 {{< note >}}
-The following StorageClass parameters from the built-in `vsphereVolume` plugin are not supported by the vSphere CSI driver:
+Die folgenden StorageClass Parameter aus dem eingebauten `vsphereVolume` Plugin werden vom vSphere CSI Driver nicht unterstützt:
 
 * `diskformat`
 * `hostfailurestotolerate`
@@ -924,28 +913,22 @@ The following StorageClass parameters from the built-in `vsphereVolume` plugin a
 * `objectspacereservation`
 * `iopslimit`
 
-Existing volumes created using these parameters will be migrated to the vSphere CSI driver,
-but new volumes created by the vSphere CSI driver will not be honoring these parameters.
+Existierende Volumes, die mit diesen Parametern erstellt wurden, werden auf den vSphere CSI Driver migriert, aber neue Volumes, die mit dem vSphere CSI Driver erstellt werden, werden diese Parameter nicht beachten.
 {{< /note >}}
 
 #### vSphere CSI migration complete {#vsphere-csi-migration-complete}
 
 {{< feature-state for_k8s_version="v1.19" state="beta" >}}
 
-To turn off the `vsphereVolume` plugin from being loaded by the controller manager and the kubelet, you need to set this feature flag to `true`. You must install a `csi.vsphere.vmware.com` {{< glossary_tooltip text="CSI" term_id="csi" >}} driver on all worker nodes.
+Um das `vsphereVolume` Plugin daran zu hindern durch den Controller Manager und das Kubelet geladen zu werden, muss dieses Flag auf `true` gesetzt werden. Du muss einen `csi.vsphere.vmware.com` {{< glossary_tooltip text="CSI" term_id="csi" >}} Driver auf allen Worker Nodes installieren.
 
 ## Using subPath {#using-subpath}
 
-Sometimes, it is useful to share one volume for multiple uses in a single pod.
-The `volumeMounts.subPath` property specifies a sub-path inside the referenced volume
-instead of its root.
+Manchmal ist es nützlich ein einziges Volume für mehrere Zweck in einem einzigen Pod zu nutzne. Die Eigenschaft `volumeMounts.subPath` spezifiziert einen Pfad innerhalb des angegebenen Volumes anstelle seiner Wurzel.
 
-The following example shows how to configure a Pod with a LAMP stack (Linux Apache MySQL PHP)
-using a single, shared volume. This sample `subPath` configuration is not recommended
-for production use.
+Das folgende Beispiel zeigt wie man einen Pod mti einem LAMP Stack (Linux Apache MySQL PHP) konfigurert und nur ein einziges shared Volume verwendet. Diese beispielhafte `supPath` Konfiguration wird nicht für den produktiven Einsatz empfohlen.
 
-The PHP application's code and assets map to the volume's `html` folder and
-the MySQL database is stored in the volume's `mysql` folder. For example:
+Der Code und die Daten der PHP Applikation entsprechen dem `html` Folder des Volumes und die MySQL Datenbank ist im `mysql` Folder des Volumes abgelegt. Zum Beispiel:
 
 ```yaml
 apiVersion: v1
@@ -975,18 +958,13 @@ spec:
         claimName: my-lamp-site-data
 ```
 
-### Using subPath with expanded environment variables {#using-subpath-expanded-environment}
+### Verwendung von subPath mit expandierten Umgebungsvariablen {#using-subpath-expanded-environment}
 
 {{< feature-state for_k8s_version="v1.17" state="stable" >}}
 
-Use the `subPathExpr` field to construct `subPath` directory names from
-downward API environment variables.
-The `subPath` and `subPathExpr` properties are mutually exclusive.
+Verwende das `subPathExpr` Feld um `subPath` Verzeichnisnamen aus downward API Umgebungsvariablen zu erstellen. Die Properties `subPath` und `subPathExpr` schliessen einander gegenseitig aus.
 
-In this example, a `Pod` uses `subPathExpr` to create a directory `pod1` within
-the `hostPath` volume `/var/log/pods`.
-The `hostPath` volume takes the `Pod` name from the `downwardAPI`.
-The host directory `/var/log/pods/pod1` is mounted at `/logs` in the container.
+In diesem Beispiel nutzt ein `Pod` eine `subPathExpr` um ein Verzeichnis `pod1` im `hostPath` Volume `/var/log/pods` zu erstellen. Das `hostPath` Volume nimmt den Namen des `Pods` vom `downwardAPI`. Das Verzeichnis `/var/log/pods/pod1` auf dem Host wird als `/logs/` in den Container gemounted.
 
 ```yaml
 apiVersion: v1
