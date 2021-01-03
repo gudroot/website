@@ -1,6 +1,6 @@
 <!-- overview -->
 
-Daten auf Disks sind in einem Container flüchtig, was für nicht-triviale Anwendungen ein Problem darstellt, wenn sie in Containern laufen sollen. Ein Problem ist der Verlust von Dateien, wenn der Container crasht. Das kubelet startet den Container neu, aber in einem clean state. Ein zweites Problem tritt auf, wenn Dateien zwischen Containern geteilt werden sollen, die zusammen in einem `Pod` laufen. Die Abstraktion des Kubernetes {{< glossary_tooltip text="volume" term_id="volume" >}} löst beide Probleme. Vertrautheit mit [Pods](/docs/concepts/workloads/pods/) wird vorausgesetzt.
+Daten auf Disk sind in einem Container flüchtig, was für nicht-triviale Anwendungen ein Problem darstellt, wenn sie in Containern laufen sollen. Ein Problem ist der Verlust von Dateien, wenn der Container crasht. Das kubelet startet den Container neu, aber in einem clean state. Ein zweites Problem tritt auf, wenn Dateien zwischen Containern geteilt werden sollen, die zusammen in einem `Pod` laufen. Die Abstraktion des Kubernetes {{< glossary_tooltip text="volume" term_id="volume" >}} löst beide Probleme. Vertrautheit mit [Pods](/docs/concepts/workloads/pods/) wird vorausgesetzt.
 
 <!-- body -->
 
@@ -550,23 +550,17 @@ Für Details vgl. das [NFS example](https://github.com/kubernetes/examples/tree/
 
 ### persistentVolumeClaim {#persistentvolumeclaim}
 
-A `persistentVolumeClaim` volume is used to mount a
-[PersistentVolume](/docs/concepts/storage/persistent-volumes/) into a Pod. PersistentVolumeClaims
-are a way for users to "claim" durable storage (such as a GCE PersistentDisk or an
-iSCSI volume) without knowing the details of the particular cloud environment.
+Ein `persistentVolumeClaim` Volume wird verwendet um ein [PersistentVolume](/docs/concepts/storage/persistent-volumes/) in einen Pod zu mounten. PersistentVolumeClaims sind ein Weg für User dauerhaftes Storage (wie z.B. eine GCE PersistentDisk oder ein iSCSI Volume) anzufordern ohne die Details des jeweiligen Cloud-Environments zu kennen.
 
 Zu den Details vgl. die Information zu [PersistentVolumes](/docs/concepts/storage/persistent-volumes/).
 
 ### portworxVolume {#portworxvolume}
 
-A `portworxVolume` is an elastic block storage layer that runs hyperconverged with
-Kubernetes. [Portworx](https://portworx.com/use-case/kubernetes-storage/) fingerprints storage
-in a server, tiers based on capabilities, and aggregates capacity across multiple servers.
-Portworx runs in-guest in virtual machines or on bare metal Linux nodes.
+Ein `portworxVolume` ist ein elastic block storage Layer, der hyperconverged mit Kubernetes läuft.  [Portworx](https://portworx.com/use-case/kubernetes-storage/) erstellt Fingerprints des Storages in einem Server, erstellt Tiers basieren auf dessen Leistungsumfang und aggregiert die Kapazität über mehrere Server. Portworx läuft als Guest in virtuellen Maschinen oder auf bare metal Linux Nodes.
 
-A `portworxVolume` can be dynamically created through Kubernetes or it can also
-be pre-provisioned and referenced inside a Pod.
-Here is an example Pod referencing a pre-provisioned Portworx volume:
+Ein `portworxVolume` kann dynamisch durch Kubernetes erstellt werden, aber es kann auch vorprovisioniert und in einem Pod referenziert werden.
+
+Hier ist ein Beispiel für einen Pod, der ein vorprovisioniertes Portworx Volume referenziert:
 
 ```yaml
 apiVersion: v1
@@ -589,25 +583,23 @@ spec:
 ```
 
 {{< note >}}
-Make sure you have an existing PortworxVolume with name `pxvol`
-before using it in the Pod.
+Stelle sicher, dass du ein existierendes PortworxVolume mit dem Namen `pxvol` hast bevor du es im Pod verwendest.
 {{< /note >}}
 
 Zu den Details vgl. [Portworx volume](https://github.com/kubernetes/examples/tree/{{< param "githubbranch" >}}/staging/volumes/portworx/README.md).
 
 ### projected
 
-A `projected` volume maps several existing volume sources into the same directory.
+Ein `projected` Volume mappt mehrere existierende Volume Quellen in das selbe Directory.
 
-Currently, the following types of volume sources can be projected:
+Derzeit können die folgenden Volume Quellen zusammengefasst werden:
 
 * [`secret`](#secret)
 * [`downwardAPI`](#downwardapi)
 * [`configMap`](#configmap)
 * `serviceAccountToken`
 
-All sources are required to be in the same namespace as the Pod. For more details,
-see the [all-in-one volume design document](https://github.com/kubernetes/community/blob/{{< param "githubbranch" >}}/contributors/design-proposals/node/all-in-one-volume.md).
+Alle Quellen müssen im selben Namespace sein wie der Pod. Zu den Details vgl. [all-in-one volume design document](https://github.com/kubernetes/community/blob/{{< param "githubbranch" >}}/contributors/design-proposals/node/all-in-one-volume.md).
 
 #### Beispielskonfiguration mit einem Secret, einer downwardAPI und einer ConfigMap {#example-configuration-secret-downwardapi-configmap}
 
@@ -681,18 +673,12 @@ spec:
               mode: 511
 ```
 
-Each projected volume source is listed in the spec under `sources`. The
-parameters are nearly the same with two exceptions:
+Jede Volume Quelle wird in der Spec unter `sources` aufgelistet. Die Parameter sind fast die selben mit zwei Ausnahmen:
 
-* For secrets, the `secretName` field has been changed to `name` to be consistent
-  with ConfigMap naming.
-* The `defaultMode` can only be specified at the projected level and not for each
-  volume source. However, as illustrated above, you can explicitly set the `mode`
-  for each individual projection.
+* Bei Secrets muss deas `secretName` Feld auf `name` geändert werden um mit der ConfigMap Konvention konsistent zu sein.
+* der `defaultMode` kann nur auf der Ebene der Zusammenfassung angegeben werden und nicht für jede Volume Quelle extra. Du kannst aber, wie oben dargestellt, den `mode` für jedes einzelne Element angeben.
 
-When the `TokenRequestProjection` feature is enabled, you can inject the token
-for the current [service account](/docs/reference/access-authn-authz/authentication/#service-account-tokens)
-into a Pod at a specified path. For example:
+Wenn das `TokenRequestProjection` Feature eingeschaltet ist, kannst du das Token fur den gerade verwendeten [service account](/docs/reference/access-authn-authz/authentication/#service-account-tokens) an einem angegebenen Pfad in einen Pod einfügen. Zum Beispiel:
 
 ```yaml
 apiVersion: v1
@@ -717,74 +703,48 @@ spec:
           path: token
 ```
 
-The example Pod has a projected volume containing the injected service account
-token. This token can be used by a Pod's containers to access the Kubernetes API
-server. The `audience` field contains the intended audience of the
-token. A recipient of the token must identify itself with an identifier specified
-in the audience of the token, and otherwise should reject the token. This field
-is optional and it defaults to the identifier of the API server.
+Der Beispielspod aht ein projected Volume, das den eingefügten ServiceAccount enthält. Dieses Token kann von einem Container des Pods verwendet werden um auf das Kubernetes API zuzugreifen. Das `audience` Feld enthält die beabsichtigte Audience des Tockens. Ein Empfänger des Tokens muss sich selbst mit dem Identifier, der in der Audience des Tokens angegeben ist, identifizieren und andernfalls das Token zurückweisen. Dieses Feld ist optional und ist standardmässig auf den Identifier des API Servers gesetzt.
 
-The `expirationSeconds` is the expected duration of validity of the service account
-token. It defaults to 1 hour and must be at least 10 minutes (600 seconds). An administrator
-can also limit its maximum value by specifying the `--service-account-max-token-expiration`
-option for the API server. The `path` field specifies a relative path to the mount point
-of the projected volume.
+Die `expirationSeconds` ist die erwartete Gültigkeitsdauer des ServiceAccount Tokens. Sie ist standardmässig auf 1 Stunde gesetzt und muss mindestens 10 Minuten (600 Sekunden) betragen. EinE AdministratorIn kann den Maximalwert durch Angabe der Option `--service-account-max-token-expiration` für den API Server begrenzen. Das Feld `path` gibt einen Pfad an, der relativ zum Mountpoint des projected Volume ist.
 
 {{< note >}}
-A container using a projected volume source as a [`subPath`](#using-subpath) volume mount will not
-receive updates for those volume sources.
+Ein Container, der ein projected Volume als [`subPath`](#using-subpath) verwendet, wird keine Änderungen an den Volume Quellen mitkriegen.
 {{< /note >}}
 
 ### quobyte
 
-A `quobyte` volume allows an existing [Quobyte](https://www.quobyte.com) volume to
-be mounted into your Pod.
+Ein `quobyte` Volume erlaubt es ein existierendes [Quobyte](https://www.quobyte.com) Volume in einen Pod zu mounten.
 
 {{< note >}}
-You must have your own Quobyte setup and running with the volumes
-created before you can use it.
+Du musst dein eigenes Quobyte aufgesetzt und laufen haben und die Volumes erstellt bevor du es verwenden kannst.
 {{< /note >}}
 
-Quobyte supports the {{< glossary_tooltip text="Container Storage Interface" term_id="csi" >}}.
-CSI is the recommended plugin to use Quobyte volumes inside Kubernetes. Quobyte's
-GitHub project has [instructions](https://github.com/quobyte/quobyte-csi#quobyte-csi) for deploying Quobyte using CSI, along with examples.
+Quobyte unterstützt das {{< glossary_tooltip text="Container Storage Interface" term_id="csi" >}}.
+CSI ist das empfohlene Plugin um Quobyte Volumes in Kubernetes zu nutzen. Quobyte's GitHub Projekt enthält [instructions](https://github.com/quobyte/quobyte-csi#quobyte-csi) zum Deployment von Quobyte mit CSI und auch Beispiele.
 
 ### rbd
 
-An `rbd` volume allows a
-[Rados Block Device](https://ceph.com/docs/master/rbd/rbd/) (RBD) volume to mount into your
-Pod. Unlike `emptyDir`, which is erased when a pod is removed, the contents of
-an `rbd` volume are preserved and the volume is unmounted. This
-means that a RBD volume can be pre-populated with data, and that data can
-be shared between pods.
+Ein `rbd` Volume erlaubt es ein [Rados Block Device](https://ceph.com/docs/master/rbd/rbd/) (RBD) Volume in einen Pod zu mounten. Anders als `emptyDir`, das gelöscht wird, wenn ein Pod entfernt wird, bleibt der Inhalt eines `rbd` Volumes erhalten und das Volume wird lediglich unmounted.
+into your Pod. Das bedeutet, dass ein RBD Volume vorab mit Daten gefüllt werden kann und dass Daten zwischen Pods geteilt werden können. 
 
 {{< note >}}
+Du musst eine Ceph Installation laufen haben bevor due RBD verwenden kannst.
 You must have a Ceph installation running before you can use RBD.
 {{< /note >}}
 
-A feature of RBD is that it can be mounted as read-only by multiple consumers
-simultaneously. This means that you can pre-populate a volume with your dataset
-and then serve it in parallel from as many pods as you need. Unfortunately,
-RBD volumes can only be mounted by a single consumer in read-write mode.
-Simultaneous writers are not allowed.
+Ein Feature von RBD ist, dass es von mehreren Consumern gleichzeitig read-only gemounted werden kann. Das bedeutet, dass man ein Volume schon vorab mit einem Datenset bestücken kann und sie dann parallel an so viele Pods servieren wie nötig. Leider können RBD Volumes nur von einem einzelnen Consumer im read-write Modus gemounted werden. Gleichzeitige Schreibzugriffe sind nicht erlaubt.
 
 Zu den Details vgl. [RBD example](https://github.com/kubernetes/examples/tree/{{< param "githubbranch" >}}/volumes/rbd).
 
 ### scaleIO (deprecated) {#scaleio}
 
-ScaleIO is a software-based storage platform that uses existing hardware to
-create clusters of scalable shared block networked storage. The `scaleIO` volume
-plugin allows deployed pods to access existing ScaleIO
-volumes. For information about dynamically provisioning new volumes for
-persistent volume claims, see
-[ScaleIO persistent volumes](/docs/concepts/storage/persistent-volumes/#scaleio).
+ScaleIO ist eine software-basierte Storage Plattform, die existierende Hardware nutzt um Clusters von scalable shared block networked Storage zu erstellen. Das `scaleIO` Volume Plugin erlaubt es auf Pods existierende ScaleIO Volumes zuzugreifen. Für Information über dynamische Provisionierung von neuen Volumes für persistent Volume Claims vgl. [ScaleIO persistent volumes](/docs/concepts/storage/persistent-volumes/#scaleio).
 
 {{< note >}}
-You must have an existing ScaleIO cluster already setup and
-running with the volumes created before you can use them.
+Du musst einen existierenden ScaleIO Cluster aufgesetzt und laufen haben und die Volumes erstellt bevor du sie nutzen kannst.
 {{< /note >}}
 
-The following example is a Pod configuration with ScaleIO:
+Das folgende Beispiel ist eine Pod-Konfiguration mit ScaleIO:
 
 ```yaml
 apiVersion: v1
@@ -811,34 +771,29 @@ spec:
       fsType: xfs
 ```
 
-For further details, see the [ScaleIO](https://github.com/kubernetes/examples/tree/{{< param "githubbranch" >}}/staging/volumes/scaleio) examples.
+Zu den Details vgl. [ScaleIO](https://github.com/kubernetes/examples/tree/{{< param "githubbranch" >}}/staging/volumes/scaleio).
 
 ### secret
 
-A `secret` volume is used to pass sensitive information, such as passwords, to
-Pods. You can store secrets in the Kubernetes API and mount them as files for
-use by pods without coupling to Kubernetes directly. `secret` volumes are
-backed by tmpfs (a RAM-backed filesystem) so they are never written to
-non-volatile storage.
+Ein `secret` Volume wird verwendet um sensitive Information, wie z.B. Passwörter, an Pods zu übergeben. Du kannst Secretes im Kubernetes API speichern und sie als Dateien für die Verwendung durch Pods mounten ohne direkte Koppelung an Kubernetes. `secrete` Volumes liegen auf einem tmpfs (einem Dateisystem im RAM) und werden so nie auf nicht-flüchtiges Storage geschreiben.
 
 {{< note >}}
-You must create a Secret in the Kubernetes API before you can use it.
+Du musst ein Secret im Kubernetes API erstellen bevor du es nutzen kannst.
 {{< /note >}}
 
 {{< note >}}
-A container using a Secret as a [`subPath`](#using-subpath) volume mount will not
-receive Secret updates.
+Ein Container, der ein Secret als [`subPath`](#using-subpath) Volume mounted wird Updates des Secrets nicht mitkriegen.
 {{< /note >}}
 
-For more details, see [Configuring Secrets](/docs/concepts/configuration/secret/).
+Für mehr Details vgl. [Configuring Secrets](/docs/concepts/configuration/secret/).
 
 ### storageOS {#storageos}
 
-A `storageos` volume allows an existing [StorageOS](https://www.storageos.com)
-volume to mount into your Pod.
+Ein `storageos` Volume erlaubt es ein existierendes [StorageOS](https://www.storageos.com) Volume in einen Pod zu mounten.
 
-StorageOS runs as a container within your Kubernetes environment, making local
-or attached storage accessible from any node within the Kubernetes cluster.
+StorageOS läuft als Container in deinem Kubernetes Environment und macht lokales oder eingehängtes Storage von jedem Node im Kubernetes Cluster aus zugänglich.
+
+
 Data can be replicated to protect against node failure. Thin provisioning and
 compression can improve utilization and reduce cost.
 
